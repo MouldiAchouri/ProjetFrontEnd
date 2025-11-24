@@ -4,7 +4,7 @@ import { useRoute, useRouter } from "vue-router";
 
 const route = useRoute();
 const router = useRouter();
-// CRITICAL STEP: Retrieving the ID passed from the router
+
 const imdbID = route.params.id; 
 
 const API_KEY = "4726f8f9";
