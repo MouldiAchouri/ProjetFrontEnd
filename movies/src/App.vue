@@ -1,26 +1,11 @@
 <script setup>
 // Importation de "ref" depuis Vue pour créer des variables réactives
 import { ref } from 'vue';
-
-<<<<<<< HEAD
-
-// poser la clé personnel OMdb ici
-=======
-// --- Configuration ---
-// Déclaration de la clé API qui servira pour accéder à OMDb
->>>>>>> ef0ceaede2da25a66c98af078701424587ffd681
 const API_KEY = "4726f8f9"; 
 // URL de base de l’API OMDb
 const BASE_URL = "http://www.omdbapi.com/";
-
-<<<<<<< HEAD
-const searchTerm = ref('');     // Recherche
-const films = ref([]);          // Liste les résultats
-const isLoading = ref(false);   // chargement des résultats
-const error = ref(null);        // gestion des erreurs
-
 // moteur de recherche
-=======
+
 // --- État de l'application (Variables réactives) ---
 // Variable réactive qui contient le texte tapé par l’utilisateur
 const searchTerm = ref('');     
@@ -33,31 +18,18 @@ const error = ref(null);
 
 // --- Implémentation du moteur de recherche ---
 // Fonction async qui lance une recherche de films sur OMDb
->>>>>>> ef0ceaede2da25a66c98af078701424587ffd681
+
 const searchMovies = async () => {
     // On réinitialise le message d’erreur
     error.value = null;
     // On vide la liste des films
     films.value = [];
-    
-<<<<<<< HEAD
-    // si on recherche sans valeur dans la barre de recherche, affiche une erreur
-=======
-    // Vérifie que l’utilisateur a bien entré un terme de recherche
->>>>>>> ef0ceaede2da25a66c98af078701424587ffd681
+
     if (!searchTerm.value) {
         // Message d’erreur si l’entrée est vide
         error.value = "Veuillez entrer un terme de recherche.";
         return;
     }
-
-<<<<<<< HEAD
-
-    isLoading.value = true; // lorsqu'on recherche, affiche le "chargement"
-=======
-    // Indique que la recherche commence
-    isLoading.value = true; 
->>>>>>> ef0ceaede2da25a66c98af078701424587ffd681
 
     try {
         // Encode le texte pour qu'il soit sûr dans l’URL
