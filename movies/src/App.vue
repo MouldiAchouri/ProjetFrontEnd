@@ -1,28 +1,29 @@
 <script setup>
 import { ref } from 'vue';
 
-// --- Configuration ---
-// Remplacer VOTRE_CLE_OMDB par votre clé réelle !
+
+// poser la clé personnel OMdb ici
 const API_KEY = "4726f8f9"; 
 const BASE_URL = "http://www.omdbapi.com/";
 
-// --- État de l'application (Variables réactives) ---
-const searchTerm = ref('');     // Terme de recherche
-const films = ref([]);          // Liste des résultats
-const isLoading = ref(false);   // Indicateur de chargement
-const error = ref(null);        // Message d'erreur
+const searchTerm = ref('');     // Recherche
+const films = ref([]);          // Liste les résultats
+const isLoading = ref(false);   // chargement des résultats
+const error = ref(null);        // gestion des erreurs
 
-// --- Implémentation du moteur de recherche ---
+// moteur de recherche
 const searchMovies = async () => {
     error.value = null;
     films.value = [];
     
+    // si on recherche sans valeur dans la barre de recherche, affiche une erreur
     if (!searchTerm.value) {
         error.value = "Veuillez entrer un terme de recherche.";
         return;
     }
 
-    isLoading.value = true; // Début du chargement
+
+    isLoading.value = true; // lorsqu'on recherche, affiche le "chargement"
 
     try {
         const encodedSearchTerm = encodeURIComponent(searchTerm.value);
