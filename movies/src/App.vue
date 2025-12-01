@@ -11,6 +11,8 @@
 </template>
 
 <style>
+
+/* garde en mémoire la recherche précédente. (keepalive)*/
 /* Styles globaux pour la page */
 body {
   margin: 0;

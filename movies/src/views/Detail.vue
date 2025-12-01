@@ -1,8 +1,8 @@
 <script setup>
 import { ref, onMounted } from 'vue';
-import { useRoute, useRouter } from 'vue-router'; // IMPORTANT
+import { useRoute, useRouter } from 'vue-router';
 
-// Clé OMDB API (votre clé)
+// Clé OMDB API
 const API_KEY = "4726f8f9";
 const BASE_URL = "http://www.omdbapi.com/";
 
@@ -12,12 +12,14 @@ const filmDetail = ref(null);
 const isLoading = ref(true);
 const error = ref(null);
 
+
+// récupère les informations complètes d'un film
 const fetchFilmDetail = async (imdbID) => {
   isLoading.value = true;
   error.value = null;
 
+  // le &i veut dire qu'on veut un id unique. Du coup on récupère les infos de cet ID
   try {
-    // Utilisation du paramètre 'i=' pour la recherche par ID
     const url = `${BASE_URL}?apikey=${API_KEY}&i=${imdbID}&plot=full`;
     const res = await fetch(url);
     const data = await res.json();
@@ -34,6 +36,7 @@ const fetchFilmDetail = async (imdbID) => {
   }
 };
 
+// un point de récupération des données
 onMounted(() => {
   // Récupère l'ID du film depuis le paramètre ':id' défini dans le routeur
   const imdbID = route.params.id;
@@ -45,7 +48,8 @@ onMounted(() => {
   }
 });
 
-const placeholderImage = 'https://placehold.co/300x450/cccccc/333333?text=Pas+dAffiche';
+// affiche un texte pas d'affiche si aucune image n'est trouvé
+const placeholderImage = 'https://placehold.co/300x450/cccccc/333333?text=Pas+d Affiche';
 </script>
 
 <template>

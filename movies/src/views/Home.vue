@@ -28,6 +28,7 @@ const searchMovies = async () => {
   error.value = null;
   films.value = [];
 
+  // on ajoute la clé pour récupérer la bd dans l'API
   try {
     const url = `${BASE_URL}?apikey=${API_KEY}&s=${searchTerm.value}`;
     const res = await fetch(url);
@@ -45,16 +46,16 @@ const searchMovies = async () => {
   }
 };
 
-// Fonction appelée pour déclencher la navigation vers les détails
+// Fonction appelée pour déclencher la navigation vers les détails. On récupère les IDs des films
 const goToDetail = (imdbID) => {
-  // Navigation CRITIQUE qui a été le point de blocage
   router.push(`/movie/${imdbID}`);
 };
 
-// Fonction qui reçoit l'événement 'view-detail' du FilmCard
+// Fonction qui est appelé lors d'un clique sur une carte d'un film
 const handleViewDetail = (imdbID) => {
   goToDetail(imdbID);
 };
+
 </script>
 
 <template>
@@ -82,7 +83,6 @@ const handleViewDetail = (imdbID) => {
     </div>
   </div>
 </template>
-
 <style scoped>
 .home-view { padding: 20px; max-width: 1200px; margin: 0 auto; }
 .search-bar { display: flex; gap: 10px; margin-bottom: 30px; }
@@ -98,22 +98,13 @@ const handleViewDetail = (imdbID) => {
   justify-content: center;
   padding-top: 20px;
 }
+/* wrap = va en dessous si y'a plus de place horizontalement*/
+
+/* message d'erreur */
 .error-message {
   color: #e74c3c;
   font-weight: bold;
   text-align: center;
   margin-top: 20px;
 }
-/* Le style du bouton de test peut aussi être retiré si vous le souhaitez */
-.test-button {
-  padding: 15px 30px;
-  background: #e74c3c;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: bold;
-  transition: background 0.2s;
-}
-.test-button:hover { background: #c0392b; }
 </style>
