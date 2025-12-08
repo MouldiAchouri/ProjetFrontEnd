@@ -139,7 +139,7 @@
   box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
-/* ⭐️ NOUVEAU : Conteneur pour le positionnement relatif du cœur ⭐️ */
+/* Conteneur pour le positionnement relatif du cœur  */
 .poster-wrapper {
     position: relative;
     width: 300px; /* Largeur de l'affiche par défaut */
@@ -154,7 +154,7 @@
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
-/* ⭐️ NOUVEAU : Style de l'icône de favoris superposée (Haut à Droite) ⭐️ */
+/* Style de l'icône de favoris superposée (Haut à Droite) */
 .favorite-icon-overlay {
     position: absolute;
     top: 5px;   /* 5px du haut */
@@ -188,7 +188,7 @@
 /* ... autres styles d'information ... */
 
 
-/* ⭐️ RÈGLES RESPONSIVES ⭐️ */
+
 @media (max-width: 768px) {
   .detail-view { padding: 15px; }
   
