@@ -1,26 +1,23 @@
 <script setup>
   import { computed } from 'vue';
   import favoritesStore from '../stores/favoritesStore'; 
-  
-  // Définit les propriétés attendues.
+    
   const props = defineProps({
     film: {
       type: Object,
       required: true,
     },
   });
-  
-  // Définit l'événement de navigation.
+    
   const emit = defineEmits(['view-detail']);
-  
-  // Récupère les fonctions du store.
-  const { isFavorite, toggleFavorite } = favoritesStore;
-  
+    
+  const { isFavorite, toggleFavorite } = favoritesStore; 
+    
   // Propriété calculée pour savoir si ce film est favori.
   const isThisFilmFavorite = computed(() => {
     return isFavorite(props.film.imdbID);
   });
-  
+    
   // Fonction exécutée lorsqu'on clique sur le CŒUR.
   const handleToggleFavorite = (event) => {
     // Empêche le clic de se propager à la carte entière (navigation).
@@ -29,28 +26,27 @@
     // Appelle l'action du store pour ajouter/supprimer le film.
     toggleFavorite(props.film);
   };
-  
+    
   // Fonction exécutée lorsqu'on clique sur le reste de la carte (navigation).
   const handleViewDetail = () => {
-    // Émet l'événement 'view-detail' pour la navigation.
     emit('view-detail', props.film.imdbID);
   };
-  
+    
   const placeholderImage = 'https://placehold.co/300x450/cccccc/333333?text=Pas+dAffiche';
   </script>
-  
+    
   <template>
     <div
-        class="film-card"
-        @click="handleViewDetail"
+      class="film-card"
+      @click="handleViewDetail"
     >
       <div class="poster-container">
-          <img
-              :src="props.film.Poster !== 'N/A' ? props.film.Poster : placeholderImage"
-              :alt="props.film.Title"
-          />
+        <img
+          :src="props.film.Poster !== 'N/A' ? props.film.Poster : placeholderImage"
+          :alt="props.film.Title"
+        />
       </div>
-  
+    
       <div class="film-info">
         <div class="title-and-heart">
           <h3>{{ props.film.Title }}</h3>
@@ -67,7 +63,7 @@
       </div>
     </div>
   </template>
-  
+    
   <style scoped>
   /* Style général de la carte. */
   .film-card {
@@ -84,7 +80,7 @@
     transform: translateY(-3px);
     box-shadow: 0 8px 16px rgba(0,0,0,0.2);
   }
-  
+    
   /* Conteneur de l'image (pas de positionnement absolu nécessaire ici) */
   .poster-container {
       width: 100%;
@@ -96,60 +92,60 @@
     object-fit: cover;
     border-radius: 4px;
   }
-  
+    
   .film-info { 
       margin-top: 10px; 
-      /* Force l'alignement gauche pour l'icône si le titre est centré */
+      /* Le texte général reste centré ou à gauche si votre design l'exige */
       text-align: left; 
   }
-  
-  /* NOUVEAU : Flexbox pour aligner titre et cœur sur la même ligne */
+    
+  /* ⭐️ CRUCIAL : Flexbox pour aligner titre et cœur sur la même ligne ⭐️ */
   .title-and-heart {
       display: flex;
       align-items: center; /* Centre verticalement le titre et le cœur */
-      justify-content: space-between; /* Pour pousser le cœur à droite si l'espace le permet */
+      justify-content: space-between; /* Pousse le cœur à l'extrémité droite */
       gap: 5px; /* Petit espace entre le titre et le cœur */
   }
-  
+    
   .film-info h3 { 
       font-size: 1.1em; 
-      margin: 0; /* Réinitialise la marge pour l'alignement Flex */
+      margin: 0; 
       color: #34495e; 
-      /* Le titre doit prendre le reste de l'espace, masquant le débordement */
+      /* Permet au titre de prendre le plus d'espace possible, et coupe le débordement */
       flex-grow: 1;
       overflow: hidden; 
       text-overflow: ellipsis; 
       white-space: nowrap; 
   }
-  
-  /* NOUVEAU : Style de l'icône en ligne */
+    
+  /* ⭐️ STYLE DE L'ICÔNE EN LIGNE (À CÔTÉ DU TITRE) ⭐️ */
   .favorite-icon-inline {
-      font-size: 1.5em; /* Taille plus petite pour l'alignement en ligne */
+      font-size: 1.5em; 
       cursor: pointer;
       user-select: none;
       transition: transform 0.2s;
       flex-shrink: 0; /* Empêche le cœur d'être compressé */
+      line-height: 1; /* Assure un bon alignement vertical */
   }
-  
+    
   /* Cœur vide (gris léger) */
   .favorite-icon-inline {
       color: #999; 
   }
-  
+    
   /* Cœur favori (rouge) */
   .favorite-icon-inline.is-favorite {
       color: #e74c3c; 
   }
-  
+    
   .favorite-icon-inline:hover {
       transform: scale(1.1);
   }
-  
+    
   .film-info p { 
       font-size: 0.9em; 
       color: #7f8c8d; 
-      /* Aligner l'année à gauche si le titre est aligné à gauche */
-      text-align: left;
+      text-align: left; /* Aligné sous le titre */
       margin-top: 3px;
   }
   </style>
