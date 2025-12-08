@@ -1,7 +1,9 @@
 <script setup>
   import { ref, watch, computed } from 'vue'; 
   import { useRoute, useRouter } from 'vue-router';
-  import favoritesStore from '../stores/favoritesStore'; // Import du store de favoris
+  // Import des deux stores
+  import favoritesStore from '../stores/favoritesStore'; 
+  import historyStore from '../stores/historyStore'; 
   
   const API_KEY = "4726f8f9";
   const BASE_URL = "http://www.omdbapi.com/";
@@ -12,7 +14,6 @@
   const isLoading = ref(true);
   const error = ref(null);
   
-  // Récupère les fonctions du store de favoris 
   const { isFavorite, toggleFavorite } = favoritesStore;
   
   // Définition de la fonction asynchrone pour récupérer les détails d'un film.
@@ -27,6 +28,9 @@
   
       if (data.Response === "True") {
         filmDetail.value = data;
+        
+        historyStore.addHistoryEntry(data); 
+
       } else {
         error.value = data.Error || "Détails du film introuvables.";
       }
@@ -46,7 +50,6 @@
   // Gère le clic sur l'icône de cœur.
   const handleToggleFavorite = () => {
     if (filmDetail.value) {
-      // Passer un objet contenant seulement les infos nécessaires (ID, Titre, Poster) pour le store
       const filmForStore = {
         imdbID: filmDetail.value.imdbID,
         Title: filmDetail.value.Title,
@@ -115,10 +118,10 @@
 </template>
   
 <style scoped>
-/* Styles par défaut */
-.detail-view { padding: 40px; max-width: 1000px; margin: 0 auto; }
-/* ... autres styles de base ... */
+/* ... Styles inchangés (ils sont déjà corrects) ... */
 
+/* Styles pour le bouton et le conteneur principal */
+.detail-view { padding: 40px; max-width: 1000px; margin: 0 auto; }
 .back-button {
   margin-bottom: 20px;
   padding: 10px 15px;
@@ -128,8 +131,6 @@
   border-radius: 5px;
   cursor: pointer;
 }
-
-/* Flexbox horizontal sur grand écran. */
 .film-details-container {
   display: flex;
   gap: 40px;
@@ -139,13 +140,12 @@
   box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
-/* Conteneur pour le positionnement relatif du cœur  */
+/* Styles pour l'affiche et le cœur */
 .poster-wrapper {
     position: relative;
-    width: 300px; /* Largeur de l'affiche par défaut */
-    height: 450px; /* Hauteur standard pour un ratio 2:3 */
+    width: 300px; 
+    height: 450px; 
 }
-
 .poster-section img {
   width: 100%;
   height: 100%;
@@ -153,17 +153,14 @@
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
-
-/* Style de l'icône de favoris superposée (Haut à Droite) */
 .favorite-icon-overlay {
     position: absolute;
-    top: 5px;   /* 5px du haut */
-    right: 5px; /* 5px de la droite */
-    
+    top: 5px;   
+    right: 5px; 
     font-size: 2em;
     cursor: pointer;
     user-select: none;
-    background: rgba(255, 255, 255, 0.8); /* Fond semi-transparent */
+    background: rgba(255, 255, 255, 0.8); 
     border-radius: 50%;
     width: 40px;
     height: 40px;
@@ -171,54 +168,38 @@
     align-items: center;
     justify-content: center;
     transition: transform 0.2s;
-    z-index: 10; /* Assure que le cœur est au-dessus de l'image */
-    color: #999; /* Cœur vide (gris) */
+    z-index: 10; 
+    color: #999; 
 }
-
 .favorite-icon-overlay.is-favorite {
-    color: #e74c3c; /* Rouge vif pour le cœur plein */
+    color: #e74c3c; 
 }
-
 .favorite-icon-overlay:hover {
     transform: scale(1.1);
 }
 
+/* Styles pour les informations */
 .info-section { flex: 1; }
 .title { font-size: 2.2em; margin-bottom: 10px; color: #34495e; }
-/* ... autres styles d'information ... */
+.year { font-size: 0.7em; color: #7f8c8d; font-weight: normal; }
+.plot { margin-bottom: 25px; line-height: 1.6; color: #555; }
+.key-info strong { color: #3498db; }
 
-
-
+/* Styles Responsives */
 @media (max-width: 768px) {
   .detail-view { padding: 15px; }
-  
-  /* Empile l'affiche et le texte verticalement. */
   .film-details-container {
       flex-direction: column;
       gap: 20px;
       padding: 20px;
   }
-  
-  /* Centre l'affiche et ajuste la taille du wrapper sur mobile */
-  .poster-section {
-      display: flex;
-      justify-content: center;
-  }
-
+  .poster-section { display: flex; justify-content: center; }
   .poster-wrapper {
       width: 100%;
-      max-width: 250px; /* Limite la largeur de l'image sur mobile */
-      height: auto; /* Permet à la hauteur de s'adapter */
+      max-width: 250px; 
+      height: auto; 
   }
-
-  .poster-section img {
-      width: 100%;
-      height: auto;
-  }
-
-  .title {
-      font-size: 1.8em;
-      text-align: center;
-  }
+  .poster-section img { width: 100%; height: auto; }
+  .title { font-size: 1.8em; text-align: center; }
 }
 </style>

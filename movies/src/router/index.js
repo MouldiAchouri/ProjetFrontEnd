@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import Home from '../views/Home.vue' // CORRECTION DE CHEMIN : '../' est nécessaire
 import Detail from '../views/Detail.vue' // CORRECTION DE CHEMIN : '../' est nécessaire
 import FavorisView from '../components/favoris.vue'
+import HistoriqueView from '../components/history.vue'
 
 // utilise des adresses normales. Sans # dans l'URL
 const router = createRouter({
@@ -22,7 +23,12 @@ const router = createRouter({
             path: '/favoris', 
             name: 'favoris',
             component: FavorisView
-          }
+        },
+        {
+            path: '/historique', 
+            name: 'historique',
+            component: HistoriqueView
+        }
     ]
 })
 

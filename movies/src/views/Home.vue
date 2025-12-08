@@ -1,29 +1,28 @@
 <script setup>
-  import { ref } from 'vue';
+  import { ref, computed } from 'vue';
   import { useRouter } from 'vue-router';
   import FilmCard from '../components/FilmCard.vue';
   
-  // Clé OMDB API.
   const API_KEY = "4726f8f9";
-  // URL de base de l'API.
   const BASE_URL = "http://www.omdbapi.com/";
   
-  
-  // Variable réactive pour le terme de recherche (saisie utilisateur).
   const searchTerm = ref('');
-  // Tableau pour stocker les résultats de films.
   const films = ref([]);
-  // État de chargement (désactive les interactions pendant la requête).
   const isLoading = ref(false);
-  // Message d'erreur.
   const error = ref(null);
   
-  // Récupère l'instance du routeur pour la navigation.
+  const currentPage = ref(1);
+  const totalResults = ref(0);
+  const RESULTS_PER_PAGE = 10;
+  
   const router = useRouter();
   
-  // Fonction asynchrone pour la recherche de films.
-  const searchMovies = async () => {
-    // Vérification si le champ est vide.
+  const totalPages = computed(() => {
+      if (totalResults.value === 0) return 0;
+      return Math.ceil(totalResults.value / RESULTS_PER_PAGE);
+  });
+  
+  const searchMovies = async (page = 1) => {
     if (!searchTerm.value.trim()) {
       error.value = "Veuillez entrer un terme de recherche.";
       films.value = [];
@@ -33,59 +32,121 @@
     isLoading.value = true;
     error.value = null;
     films.value = [];
+    currentPage.value = page;
   
     try {
-      // Construction de l'URL pour la recherche (paramètre 's').
-      const url = `${BASE_URL}?apikey=${API_KEY}&s=${searchTerm.value}`;
+      const url = `${BASE_URL}?apikey=${API_KEY}&s=${searchTerm.value}&page=${page}`;
       const res = await fetch(url);
       const data = await res.json();
   
       if (data.Response === "True") {
         films.value = data.Search;
+        totalResults.value = parseInt(data.totalResults);
       } else {
         error.value = data.Error || "Aucun film trouvé pour cette recherche.";
+        totalResults.value = 0;
       }
     } catch (err) {
       error.value = `Erreur inattendue : ${err.message}`;
+      totalResults.value = 0;
     } finally {
       isLoading.value = false;
     }
   };
   
-  // Fonction de navigation vers la page de détails.
   const goToDetail = (imdbID) => {
-    // Navigue vers la route '/movie/ID_IMDB'.
     router.push(`/movie/${imdbID}`);
   };
   
-  // Gère l'événement 'view-detail' émis par FilmCard.
   const handleViewDetail = (imdbID) => {
     goToDetail(imdbID);
   };
+  
+  const goToHistory = () => {
+      router.push('/historique');
+  };
+  
+  const changePage = (pageNumber) => {
+      if (pageNumber >= 1 && pageNumber <= totalPages.value) {
+          searchMovies(pageNumber);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+  };
+  
+  const visiblePages = computed(() => {
+      const pages = [];
+      const maxPagesToShow = 5;
+      let startPage = Math.max(1, currentPage.value - Math.floor(maxPagesToShow / 2));
+      let endPage = Math.min(totalPages.value, startPage + maxPagesToShow - 1);
+  
+      if (endPage - startPage < maxPagesToShow - 1) {
+          startPage = Math.max(1, endPage - maxPagesToShow + 1);
+      }
+      
+      for (let i = startPage; i <= endPage; i++) {
+          pages.push(i);
+      }
+      return pages;
+  });
   </script>
   
   <template>
     <div class="home-view">
       <h1 class="text-3xl font-bold mb-6 text-center text-gray-800">Recherche de Films OMDb</h1>
   
-      <div class="search-bar">
-        <input
-            v-model="searchTerm"
-            @keyup.enter="searchMovies"
-            placeholder="Entrez un titre de film..."
-        />
-        <button @click="searchMovies" :disabled="isLoading">Rechercher</button>
+      <div class="toolbar-container">
+          <div class="search-bar">
+              <input
+                  v-model="searchTerm"
+                  @keyup.enter="() => searchMovies(1)"
+                  placeholder="Entrez un titre de film..."
+              />
+              <button @click="() => searchMovies(1)" :disabled="isLoading">Rechercher</button>
+          </div>
+  
+          <button @click="goToHistory" class="history-button">
+              Historique 🕰️
+          </button>
       </div>
   
       <p v-if="isLoading" class="text-center text-blue-500 font-semibold mt-4">Chargement...</p>
       <p v-else-if="error" class="error-message">{{ error }}</p>
   
-      <div v-else class="results-grid">
+      <p v-else-if="totalResults > 0" class="results-summary">
+          Total des résultats trouvés : {{ totalResults }} films/séries.
+      </p>
+  
+      <div v-if="films.length > 0" class="results-grid">
         <FilmCard
             v-for="film in films"
             :key="film.imdbID"
             :film="film"
             @view-detail="handleViewDetail" />
+      </div>
+  
+      <div v-if="totalPages > 1 && !isLoading" class="pagination-controls">
+          <button 
+              @click="changePage(currentPage - 1)" 
+              :disabled="currentPage === 1"
+              class="pagination-button prev-next">
+              &lt; Précédent
+          </button>
+          
+          <template v-for="page in visiblePages" :key="page">
+              <button
+                  @click="changePage(page)"
+                  :class="{'active-page': page === currentPage}"
+                  class="pagination-button page-number">
+                  {{ page }}
+              </button>
+          </template>
+          
+          <button 
+              @click="changePage(currentPage + 1)" 
+              :disabled="currentPage === totalPages"
+              class="pagination-button prev-next">
+              Suivant &gt;
+          </button>
       </div>
     </div>
   </template>
@@ -93,46 +154,129 @@
   <style scoped>
   .home-view { padding: 20px; max-width: 1200px; margin: 0 auto; }
   
-  /* Style par défaut (Grand écran) : Flexbox horizontal (input et button côte à côte). */
+  .toolbar-container {
+      display: flex;
+      gap: 15px; /* Espace entre la barre de recherche et le bouton Historique */
+      margin-bottom: 30px;
+      align-items: center; /* Centrage vertical */
+  }
+  
+  /* Barre de recherche (Flexbox pour input et button) */
   .search-bar { 
       display: flex; 
       gap: 10px; 
-      margin-bottom: 30px; 
+      flex-grow: 1; /* Permet à la barre de recherche de prendre le plus d'espace */
   }
-  /* Le champ de saisie prend la majeure partie de l'espace horizontal. */
-  .search-bar input { flex: 1; padding: 12px; font-size: 16px; border: 1px solid #ccc; border-radius: 6px; }
   
-  /* Styles du bouton (couleurs, padding, etc.). */
-  .search-bar button { padding: 12px 20px; font-size: 16px; border: none; border-radius: 6px; background-color: #3498db; color: white; cursor: pointer; transition: background-color 0.2s; }
+  .search-bar input { 
+      flex: 1; 
+      padding: 12px; 
+      font-size: 16px; 
+      border: 1px solid #ccc; 
+      border-radius: 6px; 
+  }
+  
+  .search-bar button { 
+      padding: 12px 20px; 
+      font-size: 16px; 
+      border: none; 
+      border-radius: 6px; 
+      background-color: #3498db; /* Bleu */
+      color: white; 
+      cursor: pointer; 
+      transition: background-color 0.2s; 
+  }
   .search-bar button:hover:not(:disabled) { background-color: #2980b9; }
   .search-bar button:disabled { background-color: #bdc3c7; cursor: not-allowed; }
+
+  .history-button {
+      padding: 12px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 6px;
+      background-color: #f39c12; /* Orange/Jaune */
+      color: white;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      /* Assure que la hauteur correspond à la barre de recherche */
+      height: 42px; 
+      white-space: nowrap; 
+  }
+  .history-button:hover {
+      background-color: #e67e22;
+  }
   
-  /* Style de la grille des résultats. */
+  
+  /* Styles pour les résultats et la pagination (inchangés) */
+  .results-summary {
+      text-align: center;
+      font-size: 1.1em;
+      margin-bottom: 20px;
+      color: #34495e;
+  }
+  
   .results-grid {
     display: flex;
-    flex-wrap: wrap; /* Permet aux cartes de passer à la ligne. */
+    flex-wrap: wrap;
     gap: 20px;
     justify-content: center;
     padding-top: 20px;
   }
-  .error-message {
-    color: #e74c3c;
-    font-weight: bold;
-    text-align: center;
-    margin-top: 20px;
+  
+  /* Styles de Pagination */
+  .pagination-controls {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 40px;
+      margin-bottom: 20px;
+  }
+  .pagination-button {
+      padding: 10px 16px;
+      font-size: 1em;
+      border: 1px solid #ccc;
+      background-color: white;
+      color: #34495e;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.2s, border-color 0.2s;
+  }
+  .pagination-button:hover:not(:disabled):not(.active-page) {
+      background-color: #f0f0f0;
+      border-color: #999;
+  }
+  .pagination-button:disabled {
+      cursor: not-allowed;
+      opacity: 0.5;
+  }
+  .pagination-button.active-page {
+      background-color: #3498db;
+      color: white;
+      border-color: #3498db;
+      font-weight: bold;
   }
   
-  /* ⭐️ RESPONSIVE : Media Query pour les petits écrans (smartphones) ⭐️ */
+  
+  /* RÈGLES RESPONSIVES RESTAURÉES */
   @media (max-width: 600px) {
-      /* Change la direction de Flexbox : empile les éléments verticalement. */
-      .search-bar {
+      /* Empile TOUS les éléments de la barre d'outils verticalement */
+      .toolbar-container {
           flex-direction: column;
-          gap: 15px; /* Augmente l'espace entre le champ et le bouton empilés. */
+          gap: 15px; 
       }
       
-      /* Le bouton et le champ prennent désormais toute la largeur disponible par défaut. */
-      .search-bar button, .search-bar input {
+      /* Empile le champ de saisie et le bouton Rechercher */
+      .search-bar {
+          flex-direction: column;
+          gap: 10px;
+      }
+      
+      /* Tous les éléments prennent toute la largeur sur mobile */
+      .search-bar button, 
+      .search-bar input,
+      .history-button {
           width: 100%;
+          height: auto; 
       }
   }
   </style>
