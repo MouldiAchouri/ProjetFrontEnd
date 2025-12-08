@@ -21,7 +21,7 @@ const state = reactive({
 
 const actions = {
   /**
-   * Ajoute le film au DÉBUT de l'historique (Anti-chronologique : le plus récent en premier).
+   * Ajoute le film au DÉBUT de l'historique (Anti-chronologique : le plus récent en premier)
    * Les duplicata sont autorisés.
    * @param {Object} filmData - Les données complètes du film.
    */
