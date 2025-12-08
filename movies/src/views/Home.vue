@@ -66,6 +66,10 @@
       router.push('/historique');
   };
   
+  const goToFavorites = () => {
+      router.push('/favoris');
+  };
+  
   const changePage = (pageNumber) => {
       if (pageNumber >= 1 && pageNumber <= totalPages.value) {
           searchMovies(pageNumber);
@@ -101,16 +105,20 @@
                   @keyup.enter="() => searchMovies(1)"
                   placeholder="Entrez un titre de film..."
               />
-              <button @click="() => searchMovies(1)" :disabled="isLoading">Rechercher</button>
+              <button @click="() => searchMovies(1)" :disabled="isLoading" class="search-button">Rechercher</button>
           </div>
   
           <button @click="goToHistory" class="history-button">
               Historique 🕰️
           </button>
+          
+          <button @click="goToFavorites" class="favorites-button"> 
+              Favoris ❤️
+          </button>
       </div>
   
       <p v-if="isLoading" class="text-center text-blue-500 font-semibold mt-4">Chargement...</p>
-      <p v-else-if="error" class="error-message">{{ error }}</p>
+      <p v-else-if="error" class="error-message">Erreur : {{ error }}</p>
   
       <p v-else-if="totalResults > 0" class="results-summary">
           Total des résultats trouvés : {{ totalResults }} films/séries.
@@ -152,20 +160,25 @@
   </template>
   
   <style scoped>
-  .home-view { padding: 20px; max-width: 1200px; margin: 0 auto; }
+  /* ⭐️ STYLES DE BOUTONS RESTAURÉS ⭐️ */
+  
+  .home-view { 
+      padding: 20px; 
+      max-width: 1200px; 
+      margin: 0 auto; 
+  }
   
   .toolbar-container {
       display: flex;
-      gap: 15px; /* Espace entre la barre de recherche et le bouton Historique */
+      gap: 15px;
       margin-bottom: 30px;
-      align-items: center; /* Centrage vertical */
+      align-items: center; 
   }
   
-  /* Barre de recherche (Flexbox pour input et button) */
   .search-bar { 
       display: flex; 
       gap: 10px; 
-      flex-grow: 1; /* Permet à la barre de recherche de prendre le plus d'espace */
+      flex-grow: 1; 
   }
   
   .search-bar input { 
@@ -176,7 +189,8 @@
       border-radius: 6px; 
   }
   
-  .search-bar button { 
+  /* ⭐️ Style du bouton de RECHERCHE (Restauration) ⭐️ */
+  .search-button { 
       padding: 12px 20px; 
       font-size: 16px; 
       border: none; 
@@ -185,20 +199,27 @@
       color: white; 
       cursor: pointer; 
       transition: background-color 0.2s; 
+      height: 42px; 
+      white-space: nowrap; 
   }
-  .search-bar button:hover:not(:disabled) { background-color: #2980b9; }
-  .search-bar button:disabled { background-color: #bdc3c7; cursor: not-allowed; }
-
+  .search-button:hover:not(:disabled) { 
+      background-color: #2980b9; 
+  }
+  .search-button:disabled { 
+      background-color: #bdc3c7; 
+      cursor: not-allowed; 
+  }
+  
+  /* Style du bouton Historique (Restauration) */
   .history-button {
       padding: 12px 20px;
       font-size: 16px;
       border: none;
       border-radius: 6px;
-      background-color: #f39c12; /* Orange/Jaune */
+      background-color: #f39c12; /* Orange */
       color: white;
       cursor: pointer;
       transition: background-color 0.2s;
-      /* Assure que la hauteur correspond à la barre de recherche */
       height: 42px; 
       white-space: nowrap; 
   }
@@ -206,8 +227,24 @@
       background-color: #e67e22;
   }
   
+  /* Style du bouton Favoris (Restauration) */
+  .favorites-button {
+      padding: 12px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 6px;
+      background-color: #e74c3c; /* Rouge */
+      color: white;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      height: 42px; 
+      white-space: nowrap; 
+  }
+  .favorites-button:hover {
+      background-color: #c0392b;
+  }
   
-  /* Styles pour les résultats et la pagination (inchangés) */
+  /* Styles pour les résultats */
   .results-summary {
       text-align: center;
       font-size: 1.1em;
@@ -223,7 +260,7 @@
     padding-top: 20px;
   }
   
-  /* Styles de Pagination */
+  /* Styles de Pagination (Nécessaires) */
   .pagination-controls {
       display: flex;
       justify-content: center;
@@ -256,27 +293,23 @@
       font-weight: bold;
   }
   
-  
-  /* RÈGLES RESPONSIVES RESTAURÉES */
+  /* RÈGLES RESPONSIVES minimales */
   @media (max-width: 600px) {
-      /* Empile TOUS les éléments de la barre d'outils verticalement */
       .toolbar-container {
           flex-direction: column;
           gap: 15px; 
       }
-      
-      /* Empile le champ de saisie et le bouton Rechercher */
       .search-bar {
           flex-direction: column;
           gap: 10px;
+          width: 100%; 
       }
-      
-      /* Tous les éléments prennent toute la largeur sur mobile */
       .search-bar button, 
       .search-bar input,
-      .history-button {
+      .history-button,
+      .favorites-button {
           width: 100%;
-          height: auto; 
+          box-sizing: border-box; 
       }
   }
   </style>
