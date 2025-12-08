@@ -1,92 +1,155 @@
 <script setup>
-  // Importe la fonction 'defineProps' de Vue pour déclarer les propriétés (props) acceptées.
+  import { computed } from 'vue';
+  import favoritesStore from '../stores/favoritesStore'; 
+  
+  // Définit les propriétés attendues.
   const props = defineProps({
-    // Déclare une propriété nommée 'film'.
     film: {
-      // Spécifie que 'film' doit être un objet.
       type: Object,
-      // Rend cette propriété obligatoire.
       required: true,
     },
   });
   
-  // Définit l'événement que ce composant peut émettre à son parent.
+  // Définit l'événement de navigation.
   const emit = defineEmits(['view-detail']);
   
-  // Fonction appelée lors du clic sur la carte du film.
-  const handleClick = () => {
-    // Émet l'événement 'view-detail' au composant parent, en passant l'ID IMDb du film.
+  // Récupère les fonctions du store.
+  const { isFavorite, toggleFavorite } = favoritesStore;
+  
+  // Propriété calculée pour savoir si ce film est favori.
+  const isThisFilmFavorite = computed(() => {
+    return isFavorite(props.film.imdbID);
+  });
+  
+  // Fonction exécutée lorsqu'on clique sur le CŒUR.
+  const handleToggleFavorite = (event) => {
+    // Empêche le clic de se propager à la carte entière (navigation).
+    event.stopPropagation();
+    
+    // Appelle l'action du store pour ajouter/supprimer le film.
+    toggleFavorite(props.film);
+  };
+  
+  // Fonction exécutée lorsqu'on clique sur le reste de la carte (navigation).
+  const handleViewDetail = () => {
+    // Émet l'événement 'view-detail' pour la navigation.
     emit('view-detail', props.film.imdbID);
   };
   
-  // Définit une URL d'image de substitution (placeholder) à utiliser si le film n'a pas d'affiche.
   const placeholderImage = 'https://placehold.co/300x450/cccccc/333333?text=Pas+dAffiche';
   </script>
   
   <template>
     <div
         class="film-card"
-        @click="handleClick"
+        @click="handleViewDetail"
     >
-      <img
-          :src="props.film.Poster !== 'N/A' ? props.film.Poster : placeholderImage"
-          :alt="props.film.Title"
-      />
+      <div class="poster-container">
+          <img
+              :src="props.film.Poster !== 'N/A' ? props.film.Poster : placeholderImage"
+              :alt="props.film.Title"
+          />
+      </div>
+  
       <div class="film-info">
-        <h3>{{ props.film.Title }}</h3>
+        <div class="title-and-heart">
+          <h3>{{ props.film.Title }}</h3>
+          
+          <i 
+              @click="handleToggleFavorite"
+              :class="{'is-favorite': isThisFilmFavorite}"
+              class="favorite-icon-inline">
+              {{ isThisFilmFavorite ? '❤️' : '🤍' }}
+          </i>
+        </div>
+        
         <p>{{ props.film.Year }} - {{ props.film.Type }}</p>
       </div>
     </div>
   </template>
   
   <style scoped>
-  /* Début du bloc de style spécifique à ce composant (scoped). */
-  /* Style pour la carte principale. */
+  /* Style général de la carte. */
   .film-card {
     width: 200px;
     border: 1px solid #ddd;
     padding: 10px;
     border-radius: 8px;
     text-align: center;
-    /* Ajoute une transition douce pour les effets hover. */
     transition: transform 0.2s, box-shadow 0.2s;
     background-color: white;
-    /* Change le curseur en pointeur. */
-    cursor: pointer; /* Indique qu'il est cliquable */
+    cursor: pointer;
   }
-  /* Style appliqué au survol de la carte. */
   .film-card:hover {
-    /* Soulève légèrement la carte. */
     transform: translateY(-3px);
-    /* Ajoute une ombre. */
     box-shadow: 0 8px 16px rgba(0,0,0,0.2);
   }
-  /* Style pour l'image. */
+  
+  /* Conteneur de l'image (pas de positionnement absolu nécessaire ici) */
+  .poster-container {
+      width: 100%;
+      height: 300px; 
+  }
   .film-card img {
     width: 100%;
-    /* Fixe la hauteur de l'image. */
-    height: 300px; 
-    /* Assure que l'image couvre la zone. */
+    height: 100%; 
     object-fit: cover;
     border-radius: 4px;
   }
-  /* Style pour le conteneur d'informations. */
-  .film-info {
-    margin-top: 10px;
+  
+  .film-info { 
+      margin-top: 10px; 
+      /* Force l'alignement gauche pour l'icône si le titre est centré */
+      text-align: left; 
   }
-  /* Style pour le titre. */
-  .film-info h3 {
-    font-size: 1.1em;
-    margin-bottom: 5px;
-    color: #34495e;
-    /* Gère le débordement (points de suspension). */
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+  
+  /* NOUVEAU : Flexbox pour aligner titre et cœur sur la même ligne */
+  .title-and-heart {
+      display: flex;
+      align-items: center; /* Centre verticalement le titre et le cœur */
+      justify-content: space-between; /* Pour pousser le cœur à droite si l'espace le permet */
+      gap: 5px; /* Petit espace entre le titre et le cœur */
   }
-  /* Style pour les informations d'année et de type. */
-  .film-info p {
-    font-size: 0.9em;
-    color: #7f8c8d;
+  
+  .film-info h3 { 
+      font-size: 1.1em; 
+      margin: 0; /* Réinitialise la marge pour l'alignement Flex */
+      color: #34495e; 
+      /* Le titre doit prendre le reste de l'espace, masquant le débordement */
+      flex-grow: 1;
+      overflow: hidden; 
+      text-overflow: ellipsis; 
+      white-space: nowrap; 
+  }
+  
+  /* NOUVEAU : Style de l'icône en ligne */
+  .favorite-icon-inline {
+      font-size: 1.5em; /* Taille plus petite pour l'alignement en ligne */
+      cursor: pointer;
+      user-select: none;
+      transition: transform 0.2s;
+      flex-shrink: 0; /* Empêche le cœur d'être compressé */
+  }
+  
+  /* Cœur vide (gris léger) */
+  .favorite-icon-inline {
+      color: #999; 
+  }
+  
+  /* Cœur favori (rouge) */
+  .favorite-icon-inline.is-favorite {
+      color: #e74c3c; 
+  }
+  
+  .favorite-icon-inline:hover {
+      transform: scale(1.1);
+  }
+  
+  .film-info p { 
+      font-size: 0.9em; 
+      color: #7f8c8d; 
+      /* Aligner l'année à gauche si le titre est aligné à gauche */
+      text-align: left;
+      margin-top: 3px;
   }
   </style>
