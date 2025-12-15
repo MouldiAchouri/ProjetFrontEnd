@@ -7,13 +7,23 @@
   const BASE_URL = "http://www.omdbapi.com/";
   
   const searchTerm = ref('');
-  const films = ref([]);
+  const films = ref([]); // Liste brute non triée/filtrée des résultats API
   const isLoading = ref(false);
   const error = ref(null);
   
   const currentPage = ref(1);
   const totalResults = ref(0);
   const RESULTS_PER_PAGE = 10;
+  
+  // Tri existant
+  const sortCriteria = ref('None'); 
+  // ⭐️ MODIFICATION : typeFilter devient un TABLEAU pour la sélection multiple ⭐️
+  const typeFilter = ref([]); 
+  const availableTypes = ref([
+      { label: 'Films', value: 'movie' },
+      { label: 'Séries', value: 'series' },
+      { label: 'Épisodes', value: 'episode' },
+  ]);
   
   const router = useRouter();
   
@@ -33,6 +43,10 @@
     error.value = null;
     films.value = [];
     currentPage.value = page;
+    
+    // Réinitialiser le tri et le filtre lors d'une nouvelle recherche
+    sortCriteria.value = 'None'; 
+    typeFilter.value = []; // Réinitialise le tableau de filtres
   
     try {
       const url = `${BASE_URL}?apikey=${API_KEY}&s=${searchTerm.value}&page=${page}`;
@@ -66,6 +80,10 @@
       router.push('/historique');
   };
   
+  const goToFavorites = () => {
+      router.push('/favoris');
+  };
+  
   const changePage = (pageNumber) => {
       if (pageNumber >= 1 && pageNumber <= totalPages.value) {
           searchMovies(pageNumber);
@@ -88,6 +106,57 @@
       }
       return pages;
   });
+  
+  // ⭐️ LOGIQUE COMBINÉE : Filtre (multi-sélection) puis Tri ⭐️
+  const filteredAndSortedFilms = computed(() => {
+      // 1. Filtrage par type
+      let listToProcess = films.value;
+      
+      // Si des filtres sont sélectionnés, on filtre la liste
+      if (typeFilter.value.length > 0) {
+          listToProcess = films.value.filter(film => 
+              // Vérifie si le Type du film est INCLUS dans le tableau typeFilter
+              film.Type && typeFilter.value.includes(film.Type.toLowerCase())
+          );
+      }
+      
+      // 2. Tri (le code de tri existant est réutilisé ici)
+      if (listToProcess.length === 0 || sortCriteria.value === 'None') {
+          return listToProcess;
+      }
+  
+      const sorted = [...listToProcess]; 
+      const [field, direction] = sortCriteria.value.split('_');
+  
+      sorted.sort((a, b) => {
+          let valA, valB;
+  
+          if (field === 'Year') {
+              valA = parseInt(a.Year.split('–')[0]) || 0;
+              valB = parseInt(b.Year.split('–')[0]) || 0;
+              
+              if (valA === valB) {
+                  return a.Title.localeCompare(b.Title); 
+              }
+          } else if (field === 'Title') {
+              valA = a.Title;
+              valB = b.Title;
+          } else {
+              return 0;
+          }
+  
+          let comparison = 0;
+          if (typeof valA === 'string') {
+              comparison = valA.localeCompare(valB);
+          } else {
+              comparison = valA - valB;
+          }
+  
+          return direction === 'asc' ? comparison : -comparison;
+      });
+  
+      return sorted;
+  });
   </script>
   
   <template>
@@ -101,28 +170,58 @@
                   @keyup.enter="() => searchMovies(1)"
                   placeholder="Entrez un titre de film..."
               />
-              <button @click="() => searchMovies(1)" :disabled="isLoading">Rechercher</button>
+              <button @click="() => searchMovies(1)" :disabled="isLoading" class="search-button">Rechercher</button>
           </div>
   
           <button @click="goToHistory" class="history-button">
               Historique 🕰️
           </button>
-      </div>
+          <button @click="goToFavorites" class="favorites-button"> 
+              Favoris ❤️
+          </button>
+          
+          <select v-model="sortCriteria" class="sort-select">
+              <option value="None">Trier par...</option>
+              <option value="Year_desc">Année (Récent > Ancien)</option>
+              <option value="Year_asc">Année (Ancien > Récent)</option>
+              <option value="Title_asc">Titre (A-Z)</option>
+              <option value="Title_desc">Titre (Z-A)</option>
+          </select>
+          
+          <div class="type-filter-group">
+              <label class="filter-label">Catégories :</label>
+              <div class="checkbox-container">
+                  <div v-for="typeOption in availableTypes" :key="typeOption.value" class="checkbox-item">
+                      <input 
+                          type="checkbox" 
+                          :id="typeOption.value" 
+                          :value="typeOption.value" 
+                          v-model="typeFilter"
+                      />
+                      <label :for="typeOption.value">{{ typeOption.label }}</label>
+                  </div>
+              </div>
+          </div>
+          </div>
   
       <p v-if="isLoading" class="text-center text-blue-500 font-semibold mt-4">Chargement...</p>
-      <p v-else-if="error" class="error-message">{{ error }}</p>
+      <p v-else-if="error" class="error-message">Erreur : {{ error }}</p>
   
       <p v-else-if="totalResults > 0" class="results-summary">
           Total des résultats trouvés : {{ totalResults }} films/séries.
       </p>
-  
-      <div v-if="films.length > 0" class="results-grid">
+      
+      <div v-if="filteredAndSortedFilms.length > 0" class="results-grid">
         <FilmCard
-            v-for="film in films"
+            v-for="film in filteredAndSortedFilms"
             :key="film.imdbID"
             :film="film"
             @view-detail="handleViewDetail" />
       </div>
+      <p v-else-if="!isLoading && totalResults > 0 && typeFilter.length > 0" class="text-center mt-4 text-gray-600">
+          Aucun résultat correspondant aux catégories sélectionnées.
+      </p>
+  
   
       <div v-if="totalPages > 1 && !isLoading" class="pagination-controls">
           <button 
@@ -152,20 +251,27 @@
   </template>
   
   <style scoped>
-  .home-view { padding: 20px; max-width: 1200px; margin: 0 auto; }
+  /* ⭐️ STYLES DES BOUTONS ET SÉLECTEURS (Restauration) ⭐️ */
+  
+  .home-view { 
+      padding: 20px; 
+      max-width: 1200px; 
+      margin: 0 auto; 
+  }
   
   .toolbar-container {
       display: flex;
-      gap: 15px; /* Espace entre la barre de recherche et le bouton Historique */
+      gap: 15px;
       margin-bottom: 30px;
-      align-items: center; /* Centrage vertical */
+      align-items: center; 
+      /* Permet le wrapping sur les petits écrans */
+      flex-wrap: wrap; 
   }
   
-  /* Barre de recherche (Flexbox pour input et button) */
   .search-bar { 
       display: flex; 
       gap: 10px; 
-      flex-grow: 1; /* Permet à la barre de recherche de prendre le plus d'espace */
+      flex-grow: 1; 
   }
   
   .search-bar input { 
@@ -176,7 +282,8 @@
       border-radius: 6px; 
   }
   
-  .search-bar button { 
+  /* Style du bouton de RECHERCHE */
+  .search-button { 
       padding: 12px 20px; 
       font-size: 16px; 
       border: none; 
@@ -185,29 +292,88 @@
       color: white; 
       cursor: pointer; 
       transition: background-color 0.2s; 
+      height: 42px; 
+      white-space: nowrap; 
   }
-  .search-bar button:hover:not(:disabled) { background-color: #2980b9; }
-  .search-bar button:disabled { background-color: #bdc3c7; cursor: not-allowed; }
-
-  .history-button {
+  .search-button:hover:not(:disabled) { 
+      background-color: #2980b9; 
+  }
+  .search-button:disabled { 
+      background-color: #bdc3c7; 
+      cursor: not-allowed; 
+  }
+  
+  /* Style des boutons de navigation */
+  .history-button, .favorites-button {
       padding: 12px 20px;
       font-size: 16px;
       border: none;
       border-radius: 6px;
-      background-color: #f39c12; /* Orange/Jaune */
       color: white;
       cursor: pointer;
       transition: background-color 0.2s;
-      /* Assure que la hauteur correspond à la barre de recherche */
       height: 42px; 
       white-space: nowrap; 
+  }
+  .history-button {
+      background-color: #f39c12; /* Orange */
   }
   .history-button:hover {
       background-color: #e67e22;
   }
+  .favorites-button {
+      background-color: #e74c3c; /* Rouge */
+  }
+  .favorites-button:hover {
+      background-color: #c0392b;
+  }
+  
+  /* Style pour le sélecteur de tri */
+  .sort-select {
+      padding: 12px 10px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      background-color: white;
+      cursor: pointer;
+      height: 42px;
+      white-space: nowrap;
+  }
+  
+  /* ⭐️ STYLES POUR LE GROUPE DE CASES À COCHER (MULTI-SÉLECTION) ⭐️ */
+  .type-filter-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border: 1px solid #ccc; /* Bordure similaire aux autres contrôles */
+      padding: 8px 10px;
+      border-radius: 6px;
+      background-color: white;
+      white-space: nowrap;
+  }
+  
+  .filter-label {
+      font-size: 14px;
+      color: #34495e;
+      font-weight: bold;
+  }
+  
+  .checkbox-container {
+      display: flex;
+      gap: 15px;
+      align-items: center;
+  }
+  
+  .checkbox-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 14px;
+  }
+  /* --------------------------------------- */
   
   
-  /* Styles pour les résultats et la pagination (inchangés) */
+  /* Styles pour les résultats */
   .results-summary {
       text-align: center;
       font-size: 1.1em;
@@ -256,27 +422,34 @@
       font-weight: bold;
   }
   
-  
-  /* RÈGLES RESPONSIVES RESTAURÉES */
-  @media (max-width: 600px) {
-      /* Empile TOUS les éléments de la barre d'outils verticalement */
+  /* RÈGLES RESPONSIVES minimales */
+  @media (max-width: 900px) {
+      /* Permet aux filtres de s'empiler en dessous des boutons de recherche sur les tablettes et mobiles */
       .toolbar-container {
           flex-direction: column;
-          gap: 15px; 
+          align-items: stretch;
       }
-      
-      /* Empile le champ de saisie et le bouton Rechercher */
       .search-bar {
+          width: 100%;
           flex-direction: column;
           gap: 10px;
       }
-      
-      /* Tous les éléments prennent toute la largeur sur mobile */
-      .search-bar button, 
-      .search-bar input,
-      .history-button {
+      .search-bar button, .search-bar input {
           width: 100%;
-          height: auto; 
+          box-sizing: border-box; 
+      }
+      .history-button, .favorites-button, .sort-select {
+          width: 100%;
+      }
+      .type-filter-group {
+          width: 100%;
+          /* Affiche le groupe de filtres en colonne si nécessaire */
+          flex-direction: column; 
+          align-items: flex-start;
+      }
+      .checkbox-container {
+          /* Permet aux checkboxes de s'enrouler sur les très petits écrans */
+          flex-wrap: wrap; 
       }
   }
   </style>
