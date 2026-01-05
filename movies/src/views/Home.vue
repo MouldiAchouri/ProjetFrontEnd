@@ -80,58 +80,68 @@
     currentPage.value = 1;
     searchMovies(1);
   });
-  
   const searchMovies = async (page = 1) => {
-    if (!searchTerm.value.trim()) {
-      error.value = "Veuillez entrer un terme de recherche.";
-      allFilmsMap.value = new Map();
-      totalResults.value = 0;
-      return false;
-    }
-  
-    // If jumping too far
-    if (page > API_HARD_LIMIT_PAGES) return false;
-  
-    isLoading.value = true;
-    error.value = null;
-  
-    // Clear everything on a brand new search
-    if (page === 1) {
-      allFilmsMap.value = new Map();
-      totalResults.value = 0;
-    }
-  
-    // Use the API cache if we already have this page
-    if (allFilmsMap.value.has(page)) {
-      isLoading.value = false;
+  if (!searchTerm.value.trim()) {
+    error.value = "Veuillez entrer un terme de recherche.";
+    allFilmsMap.value = new Map();
+    totalResults.value = 0;
+    return false;
+  }
+
+  // If jumping too far
+  if (page > API_HARD_LIMIT_PAGES) return false;
+
+  isLoading.value = true;
+  error.value = null;
+
+  // Clear everything on a brand new search
+  if (page === 1) {
+    allFilmsMap.value = new Map();
+    totalResults.value = 0;
+  }
+
+  // Use the API cache if we already have this page
+  if (allFilmsMap.value.has(page)) {
+    isLoading.value = false;
+    return true;
+  }
+
+  try {
+    // We add &type= to the URL so the API filters for us
+    const typeParam = typeFilter.value ? `&type=${typeFilter.value}` : '';
+    const url = `${BASE_URL}?apikey=${API_KEY}&s=${searchTerm.value}&page=${page}${typeParam}`;
+    
+    const res = await fetch(url);
+    const data = await res.json();
+
+    if (data.Response === "True" && data.Search) {
+      allFilmsMap.value.set(page, data.Search);
+      // Trigger reactivity for the Map
+      allFilmsMap.value = new Map(allFilmsMap.value); 
+      totalResults.value = parseInt(data.totalResults);
       return true;
-    }
-  
-    try {
-      // We add &type= to the URL so the API filters for us
-      const typeParam = typeFilter.value ? `&type=${typeFilter.value}` : '';
-      const url = `${BASE_URL}?apikey=${API_KEY}&s=${searchTerm.value}&page=${page}${typeParam}`;
-      
-      const res = await fetch(url);
-      const data = await res.json();
-  
-      if (data.Response === "True" && data.Search) {
-        allFilmsMap.value.set(page, data.Search);
-        // Trigger reactivity for the Map
-        allFilmsMap.value = new Map(allFilmsMap.value); 
-        totalResults.value = parseInt(data.totalResults);
-        return true;
+    } else {
+      // INTERCEPT AND TRANSLATE ERROR MESSAGES
+      if (data.Error === "Movie not found!") {
+        if (typeFilter.value === 'episode') {
+          error.value = "Aucun épisode trouvé pour cette recherche.";
+        } else if (typeFilter.value === 'series') {
+          error.value = "Aucune série trouvée pour cette recherche.";
+        } else {
+          error.value = "Aucun film trouvé pour cette recherche.";
+        }
       } else {
         error.value = data.Error || "Aucun résultat trouvé.";
-        return false;
       }
-    } catch (err) {
-      error.value = `Erreur : ${err.message}`;
       return false;
-    } finally {
-      isLoading.value = false;
     }
-  };
+  } catch (err) {
+    error.value = `Erreur : ${err.message}`;
+    return false;
+  } finally {
+    isLoading.value = false;
+  }
+};
   
   const changePage = async (pageNumber) => {
     if (pageNumber < 1 || pageNumber > apiTotalPages.value) return;
