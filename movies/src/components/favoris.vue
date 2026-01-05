@@ -1,32 +1,44 @@
 <script setup>
-  import favoritesStore from '../stores/favoritesStore'; // Import du store de favoris
+  /* Importation du magasin de donnees pour acceder a la liste des favoris */
+  import favoritesStore from '../stores/favoritesStore';
+  /* Importation du composant reutilisable affichant la carte d un film */
   import FilmCard from '../components/FilmCard.vue';
+  /* Importation du composant de bouton pour revenir a la page precedente */
   import BackButton from '../components/BackButton.vue';
+  /* Importation de l utilitaire de navigation pour changer de page */
   import { useRouter } from 'vue-router';
+  /* Importation de la fonction de calcul reactif de vue */
   import {computed} from "vue";
   
+  /* Initialisation du gestionnaire de navigation */
   const router = useRouter();
   
-  // Récupère la liste des favoris depuis le store (elle est réactive !).
+  /* Recuperation de la liste des films stockes dans l etat du magasin de favoris */
   const favorisList = favoritesStore.state.list;
   
-  // Fonction pour naviguer vers les détails d'un film.
+  /* Fonction declenchee pour rediriger l utilisateur vers la page de details d un film */
   const goToDetail = (imdbID) => {
+      /* Utilisation du routeur pour envoyer l utilisateur vers l url du film specifique */
       router.push(`/movie/${imdbID}`);
   };
   </script>
   
   <template>
+
     <div class="favoris-view">
+
       <BackButton text="Retour"/>
-      <h1 class="text-3xl font-bold mb-8 text-center text-gray-800">❤️ Mes Films Favoris</h1>
-  
+
+      <h1 class="text-3xl font-bold mb-8 text-center text-gray-800">Mes Films Favoris</h1>
+
       <p v-if="favorisList.length === 0" class="empty-message">
         Vous n'avez pas encore ajouté de film à vos favoris.
         Recherchez un film et cliquez sur le cœur !
       </p>
   
+
       <div v-else class="results-grid">
+
           <FilmCard
               v-for="film in favorisList"
               :key="film.imdbID"
@@ -38,8 +50,11 @@
   </template>
   
   <style scoped>
+  /* Definition des styles de la vue avec une largeur maximale et un centrage */
   .favoris-view { padding: 20px; max-width: 1200px; margin: 0 auto; }
+  /* Style du message d absence de favoris centré et de couleur grise */
   .empty-message { text-align: center; font-size: 1.2em; color: #7f8c8d; margin-top: 50px; }
+  /* Configuration de la grille utilisant flexbox pour aligner les cartes de films */
   .results-grid {
       display: flex;
       flex-wrap: wrap;

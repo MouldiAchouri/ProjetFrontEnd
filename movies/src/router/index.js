@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import Home from '../views/Home.vue' // CORRECTION DE CHEMIN : '../' est nécessaire
-import Detail from '../views/Detail.vue' // CORRECTION DE CHEMIN : '../' est nécessaire
+import Home from '../views/Home.vue' 
+import Detail from '../views/Detail.vue' 
 import FavorisView from '../components/favoris.vue'
 import HistoriqueView from '../components/history.vue'
 
