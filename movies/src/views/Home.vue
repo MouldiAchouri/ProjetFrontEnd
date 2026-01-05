@@ -141,9 +141,6 @@
       const success = await searchMovies(pageNumber);
       if (!success) return;
     }
-  
-    currentPage.value = pageNumber;
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
   
   const handleViewDetail = (imdbID) => {
