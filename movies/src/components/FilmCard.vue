@@ -50,108 +50,114 @@
   </script>
       
   <template>
-    /* Conteneur principal de la carte avec detection du clic pour la navigation */
     <div class="film-card" @click="handleViewDetail">
-      /* Zone reservee a l affichage de l affiche du film */
       <div class="poster-container">
-        /* Affichage de l image avec verification du contenu et gestion d erreur */
         <img
-          :src="props.film.Poster !== 'N/A' ? props.film.Poster : placeholderImage"
+          :src="props.film.Poster && props.film.Poster !== 'N/A' ? props.film.Poster : placeholderImage"
           :alt="props.film.Title"
           @error="handleImageError" 
         />
+      </div>
+  
+      <div class="film-info">
+        <div class="title-and-heart">
+          <h3>{{ props.film.Title }}</h3>
+          <span 
+            class="favorite-icon-inline" 
+            :class="{ 'is-favorite': isThisFilmFavorite }"
+            @click="handleToggleFavorite"
+          >
+            {{ isThisFilmFavorite ? '❤️' : '🤍' }}
+          </span>
+        </div>
+        <p>{{ props.film.Year }} • {{ props.film.Type }}</p>
       </div>
     </div>
   </template>
       
   <style scoped>
-  /* Style de base pour l apparence de la carte de film */
+  /* Style general de la carte de film */
   .film-card {
     width: 200px;
     border: 1px solid #ddd;
     padding: 10px;
     border-radius: 8px;
-    text-align: center;
     transition: transform 0.2s, box-shadow 0.2s;
     background-color: white;
     cursor: pointer;
+    display: flex;
+    flex-direction: column;
   }
   
-  /* Effet visuel de surlevement lors du passage de la souris */
+  /* Effet de survol sur la carte */
   .film-card:hover {
-    transform: translateY(-3px);
+    transform: translateY(-5px);
     box-shadow: 0 8px 16px rgba(0,0,0,0.2);
   }
-    
-  /* Conteneur pour calibrer la taille de l image de l affiche */
+      
+  /* Conteneur pour l image de l affiche */
   .poster-container {
-      width: 100%;
-      height: 300px; 
+    width: 100%;
+    height: 280px; 
+    overflow: hidden;
+    border-radius: 4px;
   }
   
-  /* Ajustement de l image pour remplir le conteneur sans deformation */
   .film-card img {
     width: 100%;
     height: 100%; 
     object-fit: cover;
-    border-radius: 4px;
   }
-    
-  /* Zone des informations textuelles situee sous l image */
+      
+  /* Zone des informations sous l image */
   .film-info { 
-      margin-top: 10px; 
-      text-align: left; 
+    margin-top: 10px; 
+    text-align: left; 
   }
   
-  /* Disposition en ligne pour aligner le titre et l icone de favori */
+  /* Alignement du titre et du coeur */
   .title-and-heart {
-      display: flex;
-      align-items: center; 
-      justify-content: space-between; 
-      gap: 5px; 
+    display: flex;
+    align-items: flex-start; 
+    justify-content: space-between; 
+    gap: 5px; 
   }
-    
-  /* Style du titre avec gestion du texte trop long par des points de suspension */
+      
+  /* Style du titre avec limitation a 2 lignes */
   .film-info h3 { 
-      font-size: 1.1em; 
-      margin: 0; 
-      color: #34495e; 
-      flex-grow: 1;
-      overflow: hidden; 
-      text-overflow: ellipsis; 
-      white-space: nowrap; 
+    font-size: 0.95em; 
+    margin: 0; 
+    color: #34495e; 
+    flex-grow: 1;
+    overflow: hidden; 
+    text-overflow: ellipsis; 
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
   }
-    
-  /* Style de l icone de favori cliquable */
+      
+  /* Style du bouton coeur */
   .favorite-icon-inline {
-      font-size: 1.5em; 
-      cursor: pointer;
-      user-select: none;
-      transition: transform 0.2s;
-      flex-shrink: 0; 
-      line-height: 1; 
+    font-size: 1.2em; 
+    cursor: pointer;
+    user-select: none;
+    transition: transform 0.2s;
+    flex-shrink: 0;
   }
-    
-  /* Couleur grise par defaut pour un coeur non selectionne */
-  .favorite-icon-inline {
-      color: #999; 
-  }
-    
-  /* Couleur rouge pour indiquer que le film est en favori */
+      
   .favorite-icon-inline.is-favorite {
-      color: #e74c3c; 
+    color: #e74c3c; 
   }
-    
-  /* Effet de zoom lors du survol de l icone de coeur */
+      
   .favorite-icon-inline:hover {
-      transform: scale(1.1);
+    transform: scale(1.2);
   }
-    
-  /* Style pour les informations secondaires comme l annee ou le type */
+      
+  /* Style du texte secondaire (annee et type) */
   .film-info p { 
-      font-size: 0.9em; 
-      color: #7f8c8d; 
-      text-align: left; 
-      margin-top: 3px;
+    font-size: 0.85em; 
+    color: #7f8c8d; 
+    margin-top: 5px;
+    text-transform: capitalize;
   }
   </style>

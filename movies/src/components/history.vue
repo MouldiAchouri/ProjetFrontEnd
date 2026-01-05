@@ -24,22 +24,17 @@
   </script>
   
   <template>
-    /* Conteneur principal de la vue de l historique */
+
     <div class="historique-view">
-      /* Affichage du bouton de retour personnalise */
       <BackButton text="Retour"/>
-      /* Titre principal de la page avec une marge basse */
       <h1 class="text-3xl font-bold mb-8 text-center text-gray-800">Historique de Consultation</h1>
-  
-      /* Affichage d un message informatif si l historique est vide */
+
       <p v-if="historyList.length === 0" class="empty-message">
         Vous n'avez pas encore consulté de film.
       </p>
   
 
       <div v-else class="results-grid">
-          /* Generation d une carte pour chaque entree de l historique */
-          /* La clef utilise l identifiant et la date pour eviter les doublons visuels */
           <FilmCard
               v-for="(entry, index) in historyList"
               :key="`${entry.imdbID}-${entry.viewedAt}-${index}`" 

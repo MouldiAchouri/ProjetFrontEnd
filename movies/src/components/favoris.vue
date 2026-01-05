@@ -24,14 +24,13 @@
   </script>
   
   <template>
-    /* Conteneur principal de la vue des favoris */
+
     <div class="favoris-view">
-      /* Affichage du bouton de retour personnalise */
+
       <BackButton text="Retour"/>
-      /* Titre principal de la page centré avec une marge basse */
+
       <h1 class="text-3xl font-bold mb-8 text-center text-gray-800">Mes Films Favoris</h1>
-  
-      /* Affichage d un message informatif si la liste des favoris est vide */
+
       <p v-if="favorisList.length === 0" class="empty-message">
         Vous n'avez pas encore ajouté de film à vos favoris.
         Recherchez un film et cliquez sur le cœur !
@@ -39,7 +38,7 @@
   
 
       <div v-else class="results-grid">
-          /* Generation d une carte pour chaque film present dans la liste des favoris */
+
           <FilmCard
               v-for="film in favorisList"
               :key="film.imdbID"
