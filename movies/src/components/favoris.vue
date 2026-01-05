@@ -1,12 +1,14 @@
 <script setup>
   import favoritesStore from '../stores/favoritesStore'; // Import du store de favoris
   import FilmCard from '../components/FilmCard.vue';
+  import BackButton from '../components/BackButton.vue';
   import { useRouter } from 'vue-router';
+  import {computed} from "vue";
   
   const router = useRouter();
   
   // Récupère la liste des favoris depuis le store (elle est réactive !).
-  const favorisList = favoritesStore.state.list;
+  const favorisList = computed(() => favoritesStore.state.list);
   
   // Fonction pour naviguer vers les détails d'un film.
   const goToDetail = (imdbID) => {
@@ -16,6 +18,7 @@
   
   <template>
     <div class="favoris-view">
+      <BackButton text="Retour"/>
       <h1 class="text-3xl font-bold mb-8 text-center text-gray-800">❤️ Mes Films Favoris</h1>
   
       <p v-if="favorisList.length === 0" class="empty-message">

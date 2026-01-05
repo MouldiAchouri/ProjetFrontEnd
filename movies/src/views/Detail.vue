@@ -1,7 +1,7 @@
 <script setup>
   import { ref, watch, computed } from 'vue'; 
   import { useRoute, useRouter } from 'vue-router';
-  // Import des deux stores
+  import BackButton from '../components/BackButton.vue';
   import favoritesStore from '../stores/favoritesStore'; 
   import historyStore from '../stores/historyStore'; 
     
@@ -81,8 +81,7 @@
     
   <template>
       <div class="detail-view">
-        <button @click="router.back()" class="back-button">← Retour à la recherche</button>
-    
+        <BackButton text="Retour"/>
         <p v-if="isLoading" class="loading-message">Chargement des détails...</p>
         <p v-else-if="error" class="error-message">Erreur : {{ error }}</p>
     
@@ -119,16 +118,11 @@
   </template>
     
   <style scoped>
-  .detail-view { padding: 40px; max-width: 1000px; margin: 0 auto; }
-  .back-button {
-    margin-bottom: 20px;
-    padding: 10px 15px;
-    background-color: #f39c12;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-  }
+  .detail-view {
+    padding: 40px;
+    max-width: 1000px;
+    margin: 0 auto; }
+
   .film-details-container {
     display: flex;
     gap: 40px;

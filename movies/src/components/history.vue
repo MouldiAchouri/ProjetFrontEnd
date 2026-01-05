@@ -1,12 +1,14 @@
 <script setup>
     import historyStore from '../stores/historyStore';
     import FilmCard from '../components/FilmCard.vue';
+    import BackButton from '../components/BackButton.vue';
     import { useRouter } from 'vue-router';
+    import {computed} from "vue";
     
     const router = useRouter();
     
     // Récupère la liste de l'historique (qui est réactive).
-    const historyList = historyStore.state.list;
+    const historyList = computed(() => historyStore.state.list);
     
     const goToDetail = (imdbID) => {
         router.push(`/movie/${imdbID}`);
@@ -16,6 +18,7 @@
 
 <template>
   <div class="historique-view">
+    <BackButton text="Retour"/>
     <h1 class="text-3xl font-bold mb-8 text-center text-gray-800">🕰️ Historique de Consultation</h1>
 
     <p v-if="historyList.length === 0" class="empty-message">

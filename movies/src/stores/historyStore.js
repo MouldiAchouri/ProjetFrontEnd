@@ -26,25 +26,27 @@ const actions = {
    * @param {Object} filmData - Les données complètes du film.
    */
   addHistoryEntry(filmData) {
-    const newEntry = {
-      imdbID: filmData.imdbID,
-      Title: filmData.Title,
-      Poster: filmData.Poster,
-      Year: filmData.Year,
-      Type: filmData.Type || 'N/A', 
-      viewedAt: Date.now(),
-    };
+      // 1. Supprimer le film s'il existe déjà pour le remettre en haut
+      const index = state.list.findIndex(f => f.imdbID === filmData.imdbID);
+      if (index !== -1) {
+          state.list.splice(index, 1);
+      }
 
-    state.list.unshift(newEntry); 
-    
-    console.log(`[History] Ajouté en tête : ${newEntry.Title}`); 
-    
-    // Si l'on souhaite remettre la limite, on enlèverait le dernier élément (le plus ancien)
-    /*
-    if (state.list.length > 50) { 
-      state.list.pop(); 
-    }
-    */
+      const newEntry = {
+          imdbID: filmData.imdbID,
+          Title: filmData.Title,
+          Poster: filmData.Poster,
+          Year: filmData.Year,
+          Type: filmData.Type || 'N/A',
+          viewedAt: Date.now(),
+      };
+
+      state.list.unshift(newEntry);
+
+      // Limite logique : on ne garde que les 20 derniers
+      if (state.list.length > 20) {
+          state.list.pop();
+      }
   },
 };
 
