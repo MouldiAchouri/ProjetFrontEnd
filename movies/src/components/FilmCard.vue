@@ -32,37 +32,24 @@
     emit('view-detail', props.film.imdbID);
   };
     
-  const placeholderImage = 'https://placehold.co/300x450/cccccc/333333?text=Pas+dAffiche';
+  const placeholderImage = 'https://placehold.co/300x450/cccccc/333333?text=Image+Indisponible';
+
+  const handleImageError = (event) => {
+  event.target.src = placeholderImage;
+  };
   </script>
     
-  <template>
-    <div
-      class="film-card"
-      @click="handleViewDetail"
-    >
-      <div class="poster-container">
-        <img
-          :src="props.film.Poster !== 'N/A' ? props.film.Poster : placeholderImage"
-          :alt="props.film.Title"
-        />
-      </div>
-    
-      <div class="film-info">
-        <div class="title-and-heart">
-          <h3>{{ props.film.Title }}</h3>
-          
-          <i 
-              @click="handleToggleFavorite"
-              :class="{'is-favorite': isThisFilmFavorite}"
-              class="favorite-icon-inline">
-              {{ isThisFilmFavorite ? '❤️' : '🤍' }}
-          </i>
+    <template>
+      <div class="film-card" @click="handleViewDetail">
+        <div class="poster-container">
+          <img
+            :src="props.film.Poster !== 'N/A' ? props.film.Poster : placeholderImage"
+            :alt="props.film.Title"
+            @error="handleImageError" 
+          />
         </div>
-        
-        <p>{{ props.film.Year }} - {{ props.film.Type }}</p>
-      </div>
-    </div>
-  </template>
+        </div>
+    </template>
     
   <style scoped>
   /* Style général de la carte. */
@@ -98,8 +85,7 @@
       /* Le texte général reste centré ou à gauche si votre design l'exige */
       text-align: left; 
   }
-    
-  /* ⭐️ CRUCIAL : Flexbox pour aligner titre et cœur sur la même ligne ⭐️ */
+
   .title-and-heart {
       display: flex;
       align-items: center; /* Centre verticalement le titre et le cœur */
@@ -118,7 +104,6 @@
       white-space: nowrap; 
   }
     
-  /* ⭐️ STYLE DE L'ICÔNE EN LIGNE (À CÔTÉ DU TITRE) ⭐️ */
   .favorite-icon-inline {
       font-size: 1.5em; 
       cursor: pointer;
@@ -145,7 +130,7 @@
   .film-info p { 
       font-size: 0.9em; 
       color: #7f8c8d; 
-      text-align: left; /* Aligné sous le titre */
+      text-align: left; 
       margin-top: 3px;
   }
   </style>

@@ -8,7 +8,7 @@
   const router = useRouter();
   
   // Récupère la liste des favoris depuis le store (elle est réactive !).
-  const favorisList = computed(() => favoritesStore.state.list);
+  const favorisList = favoritesStore.state.list;
   
   // Fonction pour naviguer vers les détails d'un film.
   const goToDetail = (imdbID) => {

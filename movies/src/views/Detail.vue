@@ -14,7 +14,6 @@
   const isLoading = ref(true);
   const error = ref(null);
     
-  // Définition de la fonction asynchrone pour récupérer les détails d'un film.
   const fetchFilmDetail = async (imdbID) => {
     isLoading.value = true;
     error.value = null;
@@ -26,10 +25,7 @@
       
       if (data.Response === "True") {
         filmDetail.value = data;
-        
-        // Ajout à l'historique (logique conservée)
         historyStore.addHistoryEntry(data); 
-  
       } else {
         error.value = data.Error || "Détails du film introuvables.";
       }
@@ -40,14 +36,11 @@
     }
   };
   
-  // Propriété calculée pour l'état du cœur
   const isCurrentFilmFavorite = computed(() => {
     if (!filmDetail.value) return false;
-    // ⭐️ UTILISATION DIRECTE DU STORE POUR isFavorite ⭐️
     return favoritesStore.isFavorite(filmDetail.value.imdbID);
   });
   
-  // Gère le clic sur l'icône de cœur.
   const handleToggleFavorite = () => {
     if (filmDetail.value) {
       const filmForStore = {
@@ -57,12 +50,10 @@
         Year: filmDetail.value.Year,
         Type: filmDetail.value.Type || 'movie'
       };
-      // ⭐️ UTILISATION DIRECTE DU STORE POUR toggleFavorite ⭐️
       favoritesStore.toggleFavorite(filmForStore);
     }
   };
   
-  // Surveille le paramètre de route 'id' pour recharger le film.
   watch(
     () => route.params.id, 
     (newID) => {
@@ -76,52 +67,59 @@
     { immediate: true }
   );
     
-  const placeholderImage = 'https://placehold.co/300x450/cccccc/333333?text=Pas+d Affiche';
-  </script>
+  const placeholderImage = 'https://placehold.co/300x450/cccccc/333333?text=Image+Indisponible';
+
+  // This function swaps the src if the browser cannot load the original image link
+  const handleImageError = (event) => {
+    event.target.src = placeholderImage;
+  };
+</script>
     
-  <template>
-      <div class="detail-view">
-        <BackButton text="Retour"/>
-        <p v-if="isLoading" class="loading-message">Chargement des détails...</p>
-        <p v-else-if="error" class="error-message">Erreur : {{ error }}</p>
-    
-        <div v-else-if="filmDetail" class="film-details-container">
-          <div class="poster-section">
-            <div class="poster-wrapper">
-                <img
-                    :src="filmDetail.Poster !== 'N/A' ? filmDetail.Poster : placeholderImage"
-                    :alt="filmDetail.Title"
-                />
-                <i 
-                    @click="handleToggleFavorite"
-                    :class="{'is-favorite': isCurrentFilmFavorite}"
-                    class="favorite-icon-overlay">
-                    {{ isCurrentFilmFavorite ? '❤️' : '🤍' }}
-                </i>
-            </div>
-          </div>
-          <div class="info-section">
-            <h1 class="title">{{ filmDetail.Title }} <span class="year">({{ filmDetail.Year }})</span></h1>
-            
-            <p class="plot">{{ filmDetail.Plot }}</p>
-    
-            <div class="key-info">
-              <p><strong>Genre :</strong> {{ filmDetail.Genre }}</p>
-              <p><strong>Réalisateur :</strong> {{ filmDetail.Director }}</p>
-              <p><strong>Acteurs :</strong> {{ filmDetail.Actors }} }}</p>
-              <p><strong>Durée :</strong> {{ filmDetail.Runtime }}</p>
-              <p><strong>Note IMDb :</strong> {{ filmDetail.imdbRating }}</p>
-            </div>
-          </div>
+<template>
+  <div class="detail-view">
+    <BackButton text="Retour"/>
+    <p v-if="isLoading" class="loading-message">Chargement des détails...</p>
+    <p v-else-if="error" class="error-message">Erreur : {{ error }}</p>
+
+    <div v-else-if="filmDetail" class="film-details-container">
+      <div class="poster-section">
+        <div class="poster-wrapper">
+            <img
+                :src="filmDetail.Poster && filmDetail.Poster !== 'N/A' ? filmDetail.Poster : placeholderImage"
+                :alt="filmDetail.Title"
+                @error="handleImageError"
+            />
+            <i 
+                @click="handleToggleFavorite"
+                :class="{'is-favorite': isCurrentFilmFavorite}"
+                class="favorite-icon-overlay">
+                {{ isCurrentFilmFavorite ? '❤️' : '🤍' }}
+            </i>
         </div>
       </div>
-  </template>
+      <div class="info-section">
+        <h1 class="title">{{ filmDetail.Title }} <span class="year">({{ filmDetail.Year }})</span></h1>
+        
+        <p class="plot">{{ filmDetail.Plot }}</p>
+
+        <div class="key-info">
+          <p><strong>Genre :</strong> {{ filmDetail.Genre }}</p>
+          <p><strong>Réalisateur :</strong> {{ filmDetail.Director }}</p>
+          <p><strong>Acteurs :</strong> {{ filmDetail.Actors }}</p>
+          <p><strong>Durée :</strong> {{ filmDetail.Runtime }}</p>
+          <p><strong>Note IMDb :</strong> {{ filmDetail.imdbRating }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
     
-  <style scoped>
+<style scoped>
   .detail-view {
     padding: 40px;
     max-width: 1000px;
-    margin: 0 auto; }
+    margin: 0 auto; 
+  }
 
   .film-details-container {
     display: flex;
@@ -135,44 +133,52 @@
   .poster-wrapper {
       position: relative;
       width: 300px; 
-      height: 450px; 
+      flex-shrink: 0;
   }
+
   .poster-section img {
     width: 100%;
-    height: 100%;
+    height: auto;
+    min-height: 450px;
     object-fit: cover;
     border-radius: 8px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    display: block;
   }
+
   .favorite-icon-overlay {
       position: absolute;
-      top: 5px;   
-      right: 5px; 
+      top: 10px;   
+      right: 10px; 
       font-size: 2em;
       cursor: pointer;
       user-select: none;
-      background: rgba(255, 255, 255, 0.8); 
+      background: rgba(255, 255, 255, 0.9); 
       border-radius: 50%;
-      width: 40px;
-      height: 40px;
+      width: 45px;
+      height: 45px;
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: transform 0.2s;
+      transition: transform 0.2s, background 0.2s;
       z-index: 10; 
-      color: #999; 
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
   }
+
   .favorite-icon-overlay.is-favorite {
       color: #e74c3c; 
   }
+
   .favorite-icon-overlay:hover {
       transform: scale(1.1);
+      background: white;
   }
   
   .info-section { flex: 1; }
   .title { font-size: 2.2em; margin-bottom: 10px; color: #34495e; }
   .year { font-size: 0.7em; color: #7f8c8d; font-weight: normal; }
   .plot { margin-bottom: 25px; line-height: 1.6; color: #555; }
+  .key-info p { margin-bottom: 8px; }
   .key-info strong { color: #3498db; }
   
   @media (max-width: 768px) {
@@ -185,10 +191,8 @@
     .poster-section { display: flex; justify-content: center; }
     .poster-wrapper {
         width: 100%;
-        max-width: 250px; 
-        height: auto; 
+        max-width: 300px; 
     }
-    .poster-section img { width: 100%; height: auto; }
     .title { font-size: 1.8em; text-align: center; }
   }
-  </style>
+</style>
